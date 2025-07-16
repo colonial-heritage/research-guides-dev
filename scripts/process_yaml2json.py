@@ -102,6 +102,30 @@ def add_sort_order_to_item_list(ls):
             add_sort_order_to_item_list(subtopics)
 
 
+
+def dict_wrap_list(topic_list, sort_i):
+    new_dict = dict(
+        listing=topic_list,
+        sort_order=sort_i,
+        note=""
+    )
+    return new_dict
+
+
+def dict_wrap_subtopics(topic_list):
+    for i, item in enumerate(topic_list, 1):
+        item_title, item_fields = tuple(item.items())[0]
+
+        subtopics = item_fields.get("Deelonderwerpen", None) 
+        if subtopics:
+            item_fields["Deelonderwerpen"] = dict_wrap_list(subtopics, 1)
+        
+        subtopics = item_fields.get("Subtopics", None)
+        if subtopics:
+            item_fields["Subtopics"] = dict_wrap_list(subtopics, 1)
+
+
+
 def correct_IRI(url):
     # correct IRIs:
     #  - https://sws.geonames.org/6255149/
@@ -120,8 +144,6 @@ def correct_IRI(url):
         pass
     
     return url
-
-
 
 complex_types = (list, dict)
 def apply_func(yml, func, applies_to):
@@ -154,16 +176,39 @@ for f in tqdm(yaml_files):
                                          for subtitle, sublist in yaml_content["Breakdown"].items()}
 
 
+        
+        # ADD SORT ORDER TO LIST ITEMS
 
-        if "RelatedAides" in yaml_content:
-            add_sort_order_to_item_list(yaml_content["RelatedAides"])
         if "Breakdown" in yaml_content:
             for title, ls in yaml_content["Breakdown"].items():
                 add_sort_order_to_item_list(ls)
-
-
-        yaml_content = apply_func(yaml_content, correct_IRI, str)
         
+        if "RelatedAides" in yaml_content:
+            add_sort_order_to_item_list(yaml_content["RelatedAides"])
+
+        
+
+        # CREATE NEW STRUCTURE
+            
+        if "Breakdown" in yaml_content:
+            new_breakdown = {}
+            for i, (title, ls) in enumerate(yaml_content["Breakdown"].items(), 1):
+                dict_from_ls = dict_wrap_list(ls, i)
+                new_breakdown[title] = ls
+            yaml_content["Breakdown"] = new_breakdown
+
+        
+        if "Breakdown" in yaml_content:
+            for title, ls in yaml_content["Breakdown"].items():
+                dict_wrap_subtopics(ls)
+        
+        if "RelatedAides" in yaml_content:
+            dict_wrap_subtopics(yaml_content["RelatedAides"])
+
+        
+        
+        
+        yaml_content = apply_func(yaml_content, correct_IRI, str)
         
         new_name = f"{OUT_DIR}/{level}/{lang}/{name}_{lang}.json"
 
