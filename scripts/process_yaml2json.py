@@ -119,10 +119,12 @@ def dict_wrap_subtopics(topic_list):
         subtopics = item_fields.get("Deelonderwerpen", None) 
         if subtopics:
             item_fields["Deelonderwerpen"] = dict_wrap_list(subtopics, 1)
+            print(item_fields["Deelonderwerpen"])
         
         subtopics = item_fields.get("Subtopics", None)
         if subtopics:
             item_fields["Subtopics"] = dict_wrap_list(subtopics, 1)
+            print(item_fields["Subtopics"])
 
 
 
@@ -182,9 +184,12 @@ for f in tqdm(yaml_files):
         if "Breakdown" in yaml_content:
             for title, ls in yaml_content["Breakdown"].items():
                 add_sort_order_to_item_list(ls)
+                dict_wrap_subtopics(ls)
+
         
         if "RelatedAides" in yaml_content:
             add_sort_order_to_item_list(yaml_content["RelatedAides"])
+            dict_wrap_subtopics(yaml_content["RelatedAides"])
 
         
 
@@ -194,17 +199,8 @@ for f in tqdm(yaml_files):
             new_breakdown = {}
             for i, (title, ls) in enumerate(yaml_content["Breakdown"].items(), 1):
                 dict_from_ls = dict_wrap_list(ls, i)
-                new_breakdown[title] = ls
+                new_breakdown[title] = dict_from_ls
             yaml_content["Breakdown"] = new_breakdown
-
-        
-        if "Breakdown" in yaml_content:
-            for title, ls in yaml_content["Breakdown"].items():
-                dict_wrap_subtopics(ls)
-        
-        if "RelatedAides" in yaml_content:
-            dict_wrap_subtopics(yaml_content["RelatedAides"])
-
         
         
         
